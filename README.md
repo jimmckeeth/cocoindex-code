@@ -391,6 +391,8 @@ docker build -t cocoindex-code:local -f docker/Dockerfile .
 
 ## Configuration
 
+For a detailed guide on choosing and configuring embedding models, see [EMBEDDINGS.md](EMBEDDINGS.md).
+
 Configuration lives in two YAML files, both created automatically by `ccc init`.
 
 ### User Settings (`~/.cocoindex_code/global_settings.yml`)
