@@ -212,8 +212,8 @@ def main():
     report.append("---")
     report.append("## How to Regenerate this Report")
     report.append(
-        "This report was generated using the `find_best_models.py` script."
-        " To update it with the latest live data from MTEB, run:"
+        "This report was generated using the `find_best_models.py` script. "
+        "To update it with the latest live data from MTEB, run:"
     )
     report.append("```bash")
     report.append("uv run scripts/find_best_models.py --clear-cache --output MTEB-RANKINGS.md")
