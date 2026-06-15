@@ -899,6 +899,8 @@ def e2e_project_with_db_mapping() -> Iterator[tuple[Path, Path]]:
     old_cwd = os.getcwd()
     os.chdir(project_dir)
 
+    save_user_settings(make_test_user_settings())
+
     try:
         yield project_dir, db_base_dir
     finally:

@@ -29,6 +29,7 @@ __all__ = [
 _ACCEPTED_KWARGS: dict[str, frozenset[str]] = {
     "sentence-transformers": frozenset({"prompt_name"}),
     "litellm": frozenset({"input_type"}),
+    "stub": frozenset(),
 }
 
 

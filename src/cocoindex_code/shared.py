@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import logging
 import pathlib
@@ -25,8 +26,35 @@ logger = logging.getLogger(__name__)
 SBERT_PREFIX = "sbert/"
 DEFAULT_LITELLM_MIN_INTERVAL_MS = 5
 
+
+class _StubEmbedder:
+    """Deterministic n-gram embedder for testing — no model download required.
+
+    Hashes character tri- and 4-grams via MD5 (cross-process stable) into a
+    384-dim vector so search-result assertions based on lexical overlap hold.
+    Implements VectorSchemaProvider so the SQLite connector can infer the column type.
+    """
+
+    _DIM = 384
+
+    async def __coco_vector_schema__(self) -> Any:
+        from cocoindex.resources.schema import VectorSchema
+
+        return VectorSchema(dtype=np.dtype(np.float32), size=self._DIM)
+
+    async def embed(self, text: str, **kwargs: Any) -> npt.NDArray[np.float32]:
+        vec = np.zeros(self._DIM, dtype=np.float32)
+        t = text.lower()
+        for n in (3, 4):
+            for i in range(len(t) - n + 1):
+                h = int(hashlib.md5(t[i : i + n].encode()).hexdigest()[:8], 16) % self._DIM
+                vec[h] += 1.0
+        norm = float(np.linalg.norm(vec))
+        return vec / norm if norm > 0 else vec
+
+
 # Type alias
-Embedder = Union["SentenceTransformerEmbedder", "LiteLLMEmbedder"]
+Embedder = Union["SentenceTransformerEmbedder", "LiteLLMEmbedder", _StubEmbedder]
 
 # Context keys
 EMBEDDER = coco.ContextKey[Embedder]("embedder", detect_change=True)
@@ -100,6 +128,8 @@ def create_embedder(
     only and the indexing default is supplied at the call site via
     :data:`INDEXING_EMBED_PARAMS`.
     """
+    if settings.provider == "stub":
+        return _StubEmbedder()
     if settings.provider == "sentence-transformers":
         from cocoindex.ops.sentence_transformers import SentenceTransformerEmbedder
 
